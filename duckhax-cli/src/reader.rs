@@ -22,11 +22,17 @@ pub enum ReaderError{
     EndOfBuffer,
 }
 
-macro_rules! enough_bytes {
-    ($bytes:expr, $self:expr) => {
-        if $self.pos + $bytes >= $self.buf.len(){
+macro_rules! valid_pos {
+    ($self:expr, $pos:expr) => {
+        if $pos >= $self.buf.len(){
             return Err(ReaderError::EndOfBuffer);
-        } 
+        }
+    }
+}
+
+macro_rules! enough_bytes {
+    ($self:expr, $bytes:expr) => {
+        valid_pos!($self, $self.pos + $bytes);
     };
 }
 
@@ -37,8 +43,20 @@ macro_rules! u8_lshifted{
 }
 
 impl Reader{
+    pub fn seek(&mut self, pos: usize) -> Result<(), ReaderError>{
+        valid_pos!(self, pos);
+        self.pos = pos;
+        Ok(())
+    }
+
+    pub fn seek_fw(&mut self, to_seek: usize) -> Result<(), ReaderError>{
+        enough_bytes!(self, to_seek);
+        self.pos += to_seek;
+        Ok(())
+    }
+
     pub fn read_u8(&mut self) -> Result<u8,ReaderError>{
-        enough_bytes!(1,self);
+        enough_bytes!(self, 1);
         let val = Ok(
             (
                 u8_lshifted!(self, 0)
@@ -49,7 +67,7 @@ impl Reader{
     }
 
     pub fn read_u16(&mut self) -> Result<u16,ReaderError>{
-        enough_bytes!(2,self);
+        enough_bytes!(self, 2);
         let val = Ok(
             (
                 u8_lshifted!(self, 0) |
@@ -61,7 +79,7 @@ impl Reader{
     }
 
     pub fn read_u32(&mut self) -> Result<u32,ReaderError>{
-        enough_bytes!(4,self);
+        enough_bytes!(self, 4);
         let val = Ok(
             (
                 u8_lshifted!(self, 0) |

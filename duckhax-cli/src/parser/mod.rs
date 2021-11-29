@@ -29,7 +29,7 @@ pub trait Parser{
     fn file_extension(&self) -> &str; 
 
     //TODO: read from a byte buffer!
-    fn parse(&self, reader: & mut reader::Reader) -> Result<&dyn ParserResult, reader::ReaderError>;
+    fn parse(&self, reader: & mut reader::Reader) -> Result<Box<dyn ParserResult>, reader::ReaderError>;
 }
 
 pub trait ParserResult{
